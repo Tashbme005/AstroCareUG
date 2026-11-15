@@ -1,0 +1,49 @@
+
+asgiref==3.13.0
+Django==6.1.3
+sqlparse==0.6.1
+tzdata==2026.6
+
+Set up step 1: Create a folder for astrocare.
+    use the mkdir "astrocare" command #use your desired app name in the ""
+
+Set up step 2: Create a virtual environment for your project.
+    use the python -m venv venv command
+
+Set up step 3: Activate the virtual environment.
+    for windows use the source "name of your venv"\Scripts\activate command
+    for mac use the source "name of your venv"/bin/activate command
+
+Set up step 4: Install Django and other dependencies.
+    use the pip install -r requirements.txt command
+
+Set up step 5: Create a Django project.
+    use the django-admin startproject "name of your project" command
+
+Set up step 6: Create a Django app.
+    use the python manage.py startapp "name of your app" command
+
+Set up step 7: Add the app to the INSTALLED_APPS list in the settings.py file of your project.
+    open the settings.py file and add 'name of your app' to the INSTALLED_APPS list
+
+Set up step 8: Add the following lines to the settings.py file of your project to configure the login and redirect URLs:
+    LOGIN_URL = '/accounts/login/'
+    LOGIN_REDIRECT_URL = '/'
+
+Set up step 9: Create the following files inside ur app folder:
+    - urls.py
+    - rules.py
+    - forms.py
+
+Set up step 10: Model migrations:
+    use the python manage.py makemigrations command
+    use the python manage.py migrate command
+    use the python manage.py createsuperuser command to create a superuser for your project
+
+Set up step 11: Work on the created files
+    fill the urls.py file for the app with the necessary URL patterns
+    fill the rules.py file with the necessary rules for your app
+    fill the forms.py file with the necessary forms for your app
+    fill the views.py file with the necessary view functions for your app
+    fill the urls.py file for the project with the necessary URL patterns
+

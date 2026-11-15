@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Log in · AstroCare</title>
+ <style>
+  body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#f1f4f9;color:#141b2a;display:grid;place-items:center;min-height:100vh}
+  .card{background:#fff;border:1px solid #d5dbe6;border-radius:12px;padding:24px;width:min(360px,92vw)}
+  input{width:100%;box-sizing:border-box;padding:8px;margin:4px 0 10px}
+  button{padding:8px 16px;cursor:pointer}
+  .errorlist{color:#c22d1c;padding-left:18px;margin:4px 0}
+  .muted{color:#4b566b;font-size:14px}
+  a{color:#1a56db}
+ </style>
+</head>
+<body>
+ <main class="card">
+  <h1>AstroCare</h1>
+  <p class="muted">Plain-language health check-ins for crews far from the doctor.</p>
+  <form method="post">{% csrf_token %}{{ form.as_p }}
+   <button>Log in</button>
+  </form>
+  <p class="muted"><a href="{% url 'about' %}">How it works and its limits</a></p>
+  <p class="muted">Prototype. Not a medical device.</p>
+ </main>
+</body>
+</html>

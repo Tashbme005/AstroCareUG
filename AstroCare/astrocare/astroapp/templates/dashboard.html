@@ -1,0 +1,142 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AstroCare · astronaut health check-in</title>
+<style>
+ :root{--ok:#0b7f5c;--wa:#8f5b00;--ac:#c22d1c}
+ body{font:16px/1.5 system-ui,sans-serif;margin:0;background:#f1f4f9;color:#141b2a}
+ .wrap{max-width:1100px;margin:auto;padding:16px}
+ .grid{display:grid;grid-template-columns:340px 1fr;gap:14px}
+ @media(max-width:820px){.grid{grid-template-columns:1fr}}
+ .card{background:#fff;border:1px solid #d5dbe6;border-radius:12px;padding:14px;margin-bottom:14px}
+ .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:12px}
+ .pill{font-weight:800;font-size:13px;padding:2px 10px;border-radius:99px;color:#fff}
+ .s0{background:var(--ok)}.s1{background:var(--wa)}.s2{background:var(--ac)}
+ .banner{border:2px solid;border-radius:12px;padding:12px 16px;margin-bottom:14px;background:#fff}
+ .b0{border-color:var(--ok)}.b1{border-color:var(--wa)}.b2{border-color:var(--ac)}
+ .val{font-size:30px;font-weight:800}
+ .hot{cursor:pointer}.hot:focus-visible{outline:3px solid #1a56db}
+ .region{display:none}.region.on{display:block}
+ .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;align-items:center}
+ .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+ .tools form{margin:0}
+ a{color:#1a56db} button{cursor:pointer}
+ .errorlist{color:var(--ac);margin:4px 0;padding-left:18px}
+ form p input,form p select{max-width:100%}
+ .muted{color:#4b566b;font-size:14px}
+</style>
+</head>
+<body>
+<main class="wrap">
+<div class="top">
+ <h1>AstroCare {% if last %}<small>· mission day {{ last.day }}</small>{% endif %}</h1>
+ <div class="tools">
+  <form method="post" action="{% url 'set_env' %}">{% csrf_token %}
+   <select name="env" onchange="this.form.submit()" aria-label="Where are you?">
+    {% for k, v in envs.items %}<option value="{{ k }}" {% if k == env %}selected{% endif %}>{{ v.0 }}</option>{% endfor %}
+   </select></form>
+  <button type="button" onclick="document.getElementById('dlg').showModal()">Emergency guide</button>
+  {% if last %}<a href="{% url 'export_csv' %}">Download CSV</a>{% endif %}
+  <a href="{% url 'about' %}">How it works</a>
+  <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button>Log out</button></form>
+ </div>
+</div>
+<p class="card">{{ env_note }}</p>
+
+{% if a %}
+<div class="banner b{{ a.overall }}" role="status">
+ <b>{{ a.headline.0 }}</b><div>{{ a.headline.1 }}</div>
+ {% for c in a.combos %}<div>• {{ c }}</div>{% endfor %}
+</div>
+{% endif %}
+
+<div class="grid"><div>
+ {% if a %}
+ <div class="card"><h2>Tap a body area</h2>
+  <svg viewBox="0 0 300 380" width="100%" role="group" aria-label="Body map">
+   <path d="M150 20a30 30 0 1 0 .1 0zM110 80h80q18 0 18 18v70l22 70-14 5-18-50v60l10 100h-26l-12-95-12 95h-26l10-100v-60l-18 50-14-5 22-70V98q0-18 18-18z" fill="none" stroke="#9aa6bc" stroke-width="3"/>
+   {% for r in a.regions %}
+    <g class="hot" data-r="{{ r.key }}" tabindex="0" role="button" aria-label="{{ r.name }}: {{ r.label }}">
+     <circle cx="{% if r.key == 'brain' %}150{% elif r.key == 'heart' %}130{% elif r.key == 'immune' %}172{% else %}150{% endif %}"
+             cy="{% if r.key == 'brain' %}48{% elif r.key == 'heart' %}140{% elif r.key == 'immune' %}112{% elif r.key == 'metab' %}210{% else %}290{% endif %}"
+             r="15" fill="{% if r.severity == 0 %}#0b7f5c{% elif r.severity == 1 %}#8f5b00{% else %}#c22d1c{% endif %}"/>
+    </g>
+   {% endfor %}
+  </svg></div>
+ {% endif %}
+
+ <div class="card"><h2>Daily check-in</h2>
+  <form method="post">{% csrf_token %}{{ form.as_p }}<button>Save check-in</button></form></div>
+
+ <div class="card"><h2>Try demo crew data</h2>
+  <p class="muted">Loads 14 days of sample readings. This replaces your saved check-ins.</p>
+  <form method="post" action="{% url 'demo' %}" onsubmit="return confirm('Replace your saved check-ins with demo data?')">{% csrf_token %}
+   <button name="scenario" value="healthy">Healthy</button>
+   <button name="scenario" value="immune">Infection</button>
+   <button name="scenario" value="bones">Bone and heart</button>
+   <button name="scenario" value="isolation">Isolation</button>
+   <button name="scenario" value="emergency">Emergency</button>
+  </form></div>
+</div>
+
+<div>
+ {% if a %}
+ {% for r in a.regions %}
+  <div class="card region{% if forloop.first %} on{% endif %}" id="reg-{{ r.key }}">
+   <h2>{{ r.name }} <span class="pill s{{ r.severity }}">{{ r.label }}</span></h2><p>{{ r.text }}</p></div>
+ {% endfor %}
+
+ {% if a.drifts %}
+ <div class="card"><h2>Trends to watch</h2>
+  <ul>{% for d in a.drifts %}<li>{{ d.text }}</li>{% endfor %}</ul>
+  <p class="muted">Trends can show a problem before any single reading is out of range.</p></div>
+ {% elif days < drift_min_days %}
+ <p class="muted">Trend alerts start after {{ drift_min_days }} check-ins ({{ days }} so far).</p>
+ {% endif %}
+
+ <div class="cards">
+  {% for c in a.cards %}
+  <div class="card">
+   <h3>{{ c.name }} <span class="pill s{{ c.severity }}">{{ c.label }}</span></h3>
+   <div class="val">{{ c.value }} <small>{{ c.unit }}</small></div>
+   <svg class="spark" data-key="{{ c.key }}" data-s="{{ c.severity }}" viewBox="0 0 240 40" width="100%" height="40" role="img" aria-label="{{ c.name }} over recent check-ins"></svg>
+   <p>{{ c.text }}</p>
+   {% if c.severity %}<b>What to do</b><ul>{% for x in c.actions %}<li>{{ x }}</li>{% endfor %}</ul>
+   {% else %}<p>{{ c.actions.0 }}</p>{% endif %}
+  </div>{% endfor %}
+ </div>
+ {{ trends|json_script:"trends" }}
+ {% else %}<div class="card"><p>No readings yet. Save your first check-in or load demo data.</p></div>{% endif %}
+ <p class="muted">Prototype for a hackathon. Not a medical device. Follow your mission's medical procedures.</p>
+</div></div></main>
+
+<dialog id="dlg"><h2>Emergency guide</h2><ol>
+ <li><b>Stay calm and anchored.</b> Restrain yourself and the patient.</li>
+ <li><b>Call for help.</b> Alert the crew, name a crew medical officer, open a link to the flight surgeon.</li>
+ <li><b>Check the person.</b> Not responding or not breathing: start CPR and use the AED.</li>
+ <li><b>Heavy bleeding:</b> press firmly with clean cloth and keep pressing.</li>
+ <li><b>Chest pain, face drooping, confusion or fainting:</b> stop, rest, use oxygen, tell ground now.</li>
+ <li><b>Fire, smoke, toxic air or pressure loss:</b> use mission emergency procedures first.</li></ol>
+ <button type="button" onclick="document.getElementById('dlg').close()">Close</button></dialog>
+
+<script>
+const T = document.getElementById("trends");
+if (T) {
+  const trends = JSON.parse(T.textContent), cols = ["#0b7f5c", "#8f5b00", "#c22d1c"];
+  document.querySelectorAll(".spark").forEach(s => {
+    const v = trends[s.dataset.key], mn = Math.min(...v), mx = Math.max(...v), r = (mx - mn) || 1;
+    const p = v.map((x, i) => [4 + i * 232 / Math.max(1, v.length - 1), 36 - (x - mn) / r * 32]);
+    const c = cols[s.dataset.s];
+    s.innerHTML = `<polyline fill="none" stroke="${c}" stroke-width="2.5" points="${p.map(q => q.join(",")).join(" ")}"/>` +
+                  `<circle cx="${p.at(-1)[0]}" cy="${p.at(-1)[1]}" r="4" fill="${c}"/>`;
+  });
+  document.querySelectorAll(".hot").forEach(h => {
+    const go = () => {
+      document.querySelectorAll(".region").forEach(r => r.classList.remove("on"));
+      document.getElementById("reg-" + h.dataset.r).classList.add("on");
+    };
+    h.onclick = go;
+    h.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } };
+  });
+}
+</script></body></html>

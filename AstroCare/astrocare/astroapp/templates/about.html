@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>How AstroCare works</title>
+ <style>
+  body{font:16px/1.6 system-ui,sans-serif;margin:0;background:#f1f4f9;color:#141b2a}
+  main{max-width:820px;margin:auto;padding:16px}
+  table{border-collapse:collapse;width:100%;background:#fff}
+  th,td{border:1px solid #d5dbe6;padding:6px 10px;text-align:left;vertical-align:top}
+  .wide{overflow-x:auto}
+  a{color:#1a56db}
+ </style>
+</head>
+<body><main>
+ <p><a href="{% url 'dashboard' %}">← Back to AstroCare</a></p>
+ <h1>How AstroCare works</h1>
+
+ <h2>The problem</h2>
+ <p>On a long mission, such as a trip to Mars, a message to the ground can take minutes each way, and the crew may not have a doctor on board. Astronauts need to understand their own health readings quickly and know what to do next.</p>
+
+ <h2>What it does</h2>
+ <ul>
+  <li>Takes a daily check-in: heart rate, blood pressure, oxygen, temperature, blood sugar, sleep, mood and exercise.</li>
+  <li>Explains each reading in plain language and lists practical next steps, marked Normal, Watch or Act now.</li>
+  <li>Shows which body area is affected on a tappable body map.</li>
+  <li>Spots combinations (for example fever plus fast heart rate) and slow trends that a single reading would miss.</li>
+  <li>Adapts its notes to where the crew is: space station, deep-space transit, Moon base or Mars.</li>
+  <li>Exports every check-in as a CSV that can be sent to the flight surgeon.</li>
+ </ul>
+
+ <h2>Screening ranges used</h2>
+ <div class="wide"><table>
+  <tr><th>Reading</th><th>Unit</th><th>Limits</th></tr>
+  {% for r in rows %}<tr><td>{{ r.name }}</td><td>{{ r.unit }}</td><td>{{ r.limits }}</td></tr>{% endfor %}
+ </table></div>
+ <p>Sleep and exercise count as Act now only after three days in a row below the limit. This avoids false alarms from one bad day.</p>
+ <p>Trend notes compare the average of the last three check-ins with the first three, once at least six check-ins exist.</p>
+
+ <h2>Limits you should know</h2>
+ <ul>
+  <li>This is a prototype built for a hackathon. It is not a medical device and does not diagnose anything.</li>
+  <li>The ranges above are general screening values chosen for demonstration. They have not been validated against NASA flight medical standards or crew data.</li>
+  <li>The rules are simple and fixed. They do not learn from data and do not know an individual's baseline or medical history.</li>
+  <li>The sample crew data is synthetic. It is not real astronaut data.</li>
+ </ul>
+
+ <h2>Next steps</h2>
+ <p>Calibrate the ranges and trend rules using published spaceflight health evidence, such as NASA's Human Research Program and datasets in the NASA Open Science Data Repository, and review them with clinicians.</p>
+</main></body></html>
